@@ -50,6 +50,10 @@ En = 0b00000100 # Enable bit
 Rw = 0b00000010 # Read/Write bit
 Rs = 0b00000001 # Register select bit
 
+# LCD Size
+LCD_LINE_COUNT = 2
+LCD_CHARS_PER_LINE = 16
+
 class lcd:
    #initializes objects and lcd
    def __init__(self):
@@ -93,7 +97,7 @@ class lcd:
       if line == 4:
          self.lcd_write(0xD4)
 
-      for char in string:
+      for char in string.ljust(LCD_CHARS_PER_LINE):
          self.lcd_write(ord(char), Rs)
 
    # clear lcd and set to home
