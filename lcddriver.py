@@ -51,8 +51,8 @@ Rw = 0b00000010 # Read/Write bit
 Rs = 0b00000001 # Register select bit
 
 # LCD Size
-LCD_LINE_COUNT = 2
-LCD_CHARS_PER_LINE = 16
+LCD_LINE_COUNT = 4
+LCD_CHARS_PER_LINE = 20
 
 class lcd:
    #initializes objects and lcd

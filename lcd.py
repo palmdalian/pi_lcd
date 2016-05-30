@@ -1,34 +1,36 @@
 import lcddriver
-from time import *
+from time import sleep
+import requests as r
 
-import socket
-import fcntl
-import struct
+CHAMBERS = 8
 
-def get_ip_address(ifname):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,  # SIOCGIFADDR
-        struct.pack('256s', ifname[:15])
-    )[20:24])
-
-def get_first_ip():
-    for s in ['wlan0','eth0']:
-        try:
-            ip = get_ip_address(s)
-            return ip
-        except IOError:
-            pass
-    return 'not connected'
-
-#get_ip_address('eth0')  # '192.168.0.110'
-
+# Request that the Brewpi socket expects
+data = {"messageType": "lcd", "message": ""}
 
 lcd = lcddriver.lcd()
-start = time()
-seconds_connected = 0
+
 while True:
-    lcd.lcd_display_string("Brian's Pi {0:.1f}".format(time()-start),1)
-    lcd.lcd_display_string('ip:{0}'.format(get_first_ip()), 2)
-    sleep(0.1)
+    # Cycle through all of our chambers
+    for i in xrange(0, CHAMBERS):
+        # Start the screen out fresh
+        lcd.lcd_clear()
+
+        try:
+            # Communicated with the brewpi script. I know...crazy setup
+            resp = r.post("http://localhost/chamber" + str(i) + "/socketmessage.php", data=data).json()
+        except:
+            resp = ['Cannot receive', 'LCD text from', 'Python script', '']
+        
+        for index, line in enumerate(resp):
+            # Things to make the text less confusing for my particular setup.
+            if "Mode" in line:
+                line = "Chamber " + str(i)
+            if "Fridge" in line:
+                line = line.replace("Fridge", "Beer")
+            if "Beer   --.-  --.-" in line:
+                line = ""
+            # Newlines make a weird symbol on the lcd
+            if line == "\n":
+                line = ""
+            lcd.lcd_display_string(line.replace("&deg", ""), index+1)
+        sleep(2)
